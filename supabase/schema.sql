@@ -15,13 +15,14 @@ create table if not exists drafts (
   telegram_message_id bigint unique,
   draft_text text not null,
   status text not null default 'pending',
+  decision_reason text,
   decided_at timestamptz,
   created_at timestamptz not null default now()
 );
 
 create table if not exists voice_skill (
   id uuid primary key default gen_random_uuid(),
-  skill_name text not null,
+  skill_name text not null unique,
   tone_prompt text not null,
   created_at timestamptz not null default now()
 );
@@ -31,4 +32,4 @@ values (
   'founder_voice',
   'Write concise, sharp, founder-led business updates that sound confident, practical, and specific. Prefer clear claims, concrete numbers, and a strong point of view without sounding inflated or promotional.'
 )
-on conflict do nothing;
+on conflict (skill_name) do nothing;

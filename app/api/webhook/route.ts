@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     const channelPost = update?.channel_post || update?.message;
 
     if (!channelPost) {
-      return new Response("OK", { status: 200 });
+      return Response.json({ ok: true, ignored: true, reason: "no_channel_post_or_message" }, { status: 200 });
     }
 
     const chatId = channelPost.chat?.id;
@@ -28,11 +28,20 @@ export async function POST(request: Request) {
     const text = channelPost.text || "";
 
     if (!chatId || !messageId || !text) {
-      return new Response("OK", { status: 200 });
+      return Response.json({ ok: true, ignored: true, reason: "missing_chat_or_text" }, { status: 200 });
+    }
+
+    if (!process.env.TELEGRAM_CHANNEL_CHAT_ID) {
+      return Response.json({ ok: false, error: "TELEGRAM_CHANNEL_CHAT_ID missing" }, { status: 500 });
     }
 
     if (String(chatId) !== String(process.env.TELEGRAM_CHANNEL_CHAT_ID)) {
-      return new Response("OK", { status: 200 });
+      return Response.json({
+        ok: false,
+        error: "channel_mismatch",
+        expected: String(process.env.TELEGRAM_CHANNEL_CHAT_ID),
+        received: String(chatId),
+      }, { status: 200 });
     }
 
     const result = await scoreNote(text);
